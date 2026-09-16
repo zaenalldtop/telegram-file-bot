@@ -26,9 +26,19 @@ def run_health_server():
 app = Client("file_to_link_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 @app.on_message(filters.document | filters.video | filters.audio | filters.photo)
-async def generate_link(client, message):
-    local_path = await message.download()
-    file_name = os.path.basename(local_path)
+async def start_web_server():
+    server = web.Application()
+    server.router.add_get('/', handle_health_check)
+    server.router.add_head('/', handle_health_check)  # <-- TAMBAHKAN BARIS INI
+    
+    # Mengambil port dari Render (Default: 10000)
+    port = int(os.environ.get("PORT", 10000))
+    
+    runner = web.AppRunner(server)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+    print(f"--- SERVER HEALTH CHECK AKTIF DI PORT {port} ---")
     
     # Membersihkan URL dari tanda garis miring di ujung jika ada
     base_url = CLOUDFLARE_WORKER_URL.rstrip('/')
