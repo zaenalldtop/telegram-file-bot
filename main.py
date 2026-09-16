@@ -26,12 +26,23 @@ def run_health_server():
 app = Client("file_to_link_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 @app.on_message(filters.document | filters.video | filters.audio | filters.photo)
+# ==========================================
+# SERVER HEALTH CHECK ASINKRON (DIPERBAIKI)
+# ==========================================
+async def handle_get_check(request):
+    # GET mengembalikan teks respon lengkap
+    return web.Response(text="Server Cloud Percetakan Aktif")
+
+async def handle_head_check(request):
+    # HEAD hanya mengembalikan status 200 OK tanpa body teks (Wajib untuk aiohttp)
+    return web.Response(status=200)
+
 async def start_web_server():
     server = web.Application()
-    server.router.add_get('/', handle_health_check)
-    server.router.add_head('/', handle_health_check)  # <-- TAMBAHKAN BARIS INI
+    # Memisahkan rute GET dan HEAD secara mandiri
+    server.router.add_get('/', handle_get_check)
+    server.router.add_head('/', handle_head_check)
     
-    # Mengambil port dari Render (Default: 10000)
     port = int(os.environ.get("PORT", 10000))
     
     runner = web.AppRunner(server)
@@ -39,6 +50,7 @@ async def start_web_server():
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
     print(f"--- SERVER HEALTH CHECK AKTIF DI PORT {port} ---")
+
     
     # Membersihkan URL dari tanda garis miring di ujung jika ada
     base_url = CLOUDFLARE_WORKER_URL.rstrip('/')
