@@ -1,10 +1,6 @@
 import os
 import requests
-import urllib3
 from pyrogram import Client, filters
-
-# Menonaktifkan peringatan tidak aman karena bypass SSL
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 API_ID = int(os.environ.get("API_ID", "39206186").strip()) 
 API_HASH = os.environ.get("API_HASH", "f1f40463bd79b121b4bff7a76c47ac16").strip()
@@ -22,34 +18,43 @@ async def generate_link(client, message):
     await msg.edit_text("⚡ *Sedang mengunggah ke Cloud Prima Digital Print...*")
     
     try:
-        with open(local_path, "rb") as file_data:
-            # Menambahkan verify=False untuk melewati bentrokan protokol SSL Render
-            response = requests.post(
-                "https://pixeldrain.com",
-                files={"file": file_data},
-                verify=False
-            )
+        # Langkah 1: Meminta alamat server kosong yang tersedia dari GoFile API
+        server_response = requests.get("https://gofile.io")
+        server_data = server_response.json()
         
-        res_data = response.json()
-        if response.status_code == 201 and res_data.get("success"):
-            file_id = res_data.get("id")
-            download_link = f"{CUSTOM_DOMAIN}/{file_id}"
+        if server_data.get("status") == "ok":
+            best_server = server_data["data"]["servers"][0]["name"]
             
-            await msg.edit_text(
-                f"✅ *File Sukses Terunggah!*\n\n"
-                f"🔗 *Tautan Unduh Publik:*\n{download_link}\n\n"
-                f"_Tautan resmi Cloud Percetakan Prima Digital Print._"
-            )
+            # Langkah 2: Mengunggah berkas ke server terbaik GoFile
+            with open(local_path, "rb") as file_data:
+                upload_url = f"https://{best_server}.gofile.io/contents/uploadfile"
+                response = requests.post(upload_url, files={"file": file_data})
+            
+            res_data = response.json()
+            if response.status_code == 200 and res_data.get("status") == "ok":
+                # Mengambil ID berkas unik dari GoFile
+                file_id = res_data["data"]["fileId"]
+                
+                # Membungkus dengan domain kustom bisnis Anda
+                download_link = f"{CUSTOM_DOMAIN}/{file_id}"
+                
+                await msg.edit_text(
+                    f"✅ *File Sukses Terunggah!*\n\n"
+                    f"🔗 *Tautan Unduh Publik:*\n{download_link}\n\n"
+                    f"_Tautan resmi Cloud Percetakan Prima Digital Print._"
+                )
+            else:
+                await msg.edit_text("❌ Server GoFile menolak berkas. Sila coba sekejap lagi.")
         else:
-            await msg.edit_text("❌ Server cloud sedang penuh. Silakan coba beberapa saat lagi.")
+            await msg.edit_text("❌ Gagal mendapatkan jalur server penyimpanan.")
             
     except Exception as e:
-        await msg.edit_text(f"❌ Terjadi galat sistem: {str(e)}")
+        await msg.edit_text(f"❌ Terjadi galat jaringan: {str(e)}")
     
     finally:
         if os.path.exists(local_path):
             os.remove(local_path)
 
 if __name__ == "__main__":
-    print("--- BOT CLOUD PERCETAKAN FINAL SUKSES BERJALAN ---")
+    print("--- BOT CLOUD PERCETAKAN GOFILE AKTIF ---")
     app.run()
