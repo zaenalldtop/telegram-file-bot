@@ -9,7 +9,7 @@ API_ID = int(os.environ.get("API_ID", "39206186").strip())
 API_HASH = os.environ.get("API_HASH", "f1f40463bd79b121b4bff7a76c47ac16").strip()
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8913324140:AAFt0rHCeNPScTHThGPPmIR4S2cdLiZfMw4").strip()
 
-CLOUDFLARE_WORKER_URL = "https://primadigitalprint.com" 
+CLOUDFLARE_WORKER_URL = "https://cloud.primadigitalprint.com" 
 
 class HealthCheckHandler(BaseHTTPRequestHandler):
     def do_GET(self):
