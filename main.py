@@ -9,7 +9,7 @@ API_ID = int(os.environ.get("API_ID", "39206186").strip())
 API_HASH = os.environ.get("API_HASH", "f1f40463bd79b121b4bff7a76c47ac16").strip()
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8913324140:AAFt0rHCeNPScTHThGPPmIR4S2cdLiZfMw4").strip()
 
-CLOUDFLARE_WORKER_URL = "https://cloud.primadigitalprint.com" 
+CLOUDFLARE_WORKER_URL = "https://primadigitalprint.com" 
 
 class HealthCheckHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -40,24 +40,21 @@ async def generate_link(client, message):
             )
         
         if response.status_code == 200:
-            # Otomatis mengubah spasi menjadi %20 agar link internet utuh tidak terputus
             download_link = f"{base_url}/d/{file_name}".replace(" ", "%20")
             
-            # MEMBUAT TOMBOL INTERAKTIF DI BAWAH PESAN
-            # Catatan: Telegram secara otomatis menyediakan fitur "Copy Link" bawaan 
-            # jika tombol URL di bawah ini ditekan lama oleh pengguna HP.
-            tombol_proses = InlineKeyboardMarkup([
+            # MEMBUAT TOMBOL SALIN TAUTAN (MENGGUNAKAN FITUR SHARE TELEGRAM)
+            # Ketika tombol ini diklik, Telegram akan otomatis memicu sistem salin/bagikan link secara instan
+            tombol_salin = InlineKeyboardMarkup([
                 [
-                    InlineKeyboardButton("📥 Unduh Berkas", url=download_link)
+                    InlineKeyboardButton("🔗 Salin Tautan Berkas", url=f"https://t.me{download_link}")
                 ]
             ])
             
             await message.reply_text(
                 f"✅ **FILE SUKSES TERUNGGAH!**\n\n"
                 f"📁 **Nama Berkas:** `{file_name}`\n\n"
-                f"_Tautan resmi Penyimpanan Berkas Prima Digital Print._\n"
-                f"_Klik atau tahan tombol di bawah untuk mengunduh/menyalin link._",
-                reply_markup=tombol_proses
+                f"__Tautan resmi Penyimpanan Berkas Prima Digital Print.__"
+                reply_markup=tombol_salin
             )
         else:
             await message.reply_text(f"❌ Cloudflare menolak berkas (Status: {response.status_code})")
@@ -71,5 +68,5 @@ async def generate_link(client, message):
 
 if __name__ == "__main__":
     threading.Thread(target=run_health_server, daemon=True).start()
-    print("--- BOT JALUR DIREK WORKERS AKTIF ---")
+    print("--- BOT CLOUD TOMBOL SALIN AKTIF ---")
     app.run()
