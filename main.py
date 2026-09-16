@@ -53,7 +53,7 @@ async def generate_link(client, message):
             await message.reply_text(
                 f"✅ FILE SUKSES TERUNGGAH!\n\n"
                 f"📁 Nama Berkas: `{file_name}`\n\n"
-                f"__Tautan resmi Penyimpanan Berkas Prima Digital Print.__"
+                f"__Tautan resmi Penyimpanan Berkas Prima Digital Print.__",
                 reply_markup=tombol_salin
             )
         else:
