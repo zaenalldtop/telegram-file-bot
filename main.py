@@ -3,13 +3,12 @@ import requests
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pyrogram import Client, filters
-# Tambahkan import untuk Inline Keyboard di bawah ini
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 API_ID = int(os.environ.get("API_ID", "39206186").strip()) 
 API_HASH = os.environ.get("API_HASH", "f1f40463bd79b121b4bff7a76c47ac16").strip()
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8913324140:AAFt0rHCeNPScTHThGPPmIR4S2cdLiZfMw4").strip()
 
+# ⚠️ TEMPELKAN URL .WORKERS.DEV ANDA DI SINI (Ganti teks di bawah ini dengan hasil salinan dari Cloudflare)
 CLOUDFLARE_WORKER_URL = "https://cloud.primadigitalprint.com/" 
 
 class HealthCheckHandler(BaseHTTPRequestHandler):
@@ -31,9 +30,11 @@ async def generate_link(client, message):
     local_path = await message.download()
     file_name = os.path.basename(local_path)
     
+    # Membersihkan URL dari tanda garis miring di ujung jika ada
     base_url = CLOUDFLARE_WORKER_URL.rstrip('/')
     
     try:
+        # Mengirim berkas langsung ke server internal Cloudflare Workers Anda
         with open(local_path, "rb") as file_data:
             response = requests.post(
                 f"{base_url}/d/{file_name}",
@@ -42,27 +43,11 @@ async def generate_link(client, message):
         
         if response.status_code == 200:
             download_link = f"{base_url}/d/{file_name}".replace(" ", "%20")
-            
-            # --- MODIFIKASI TOMBOL INLINE DIMULAI ---
             await message.reply_text(
-                text=(
-                    f"✅ **File Sukses Terunggah!**\n\n"
-                    f"📁 **Nama File:** `{file_name}`\n\n"
-                    f"__Silakan klik tombol di bawah untuk mengunduh berkas.__"
-                ),
-                reply_markup=InlineKeyboardMarkup(
-                    [
-                        [
-                            InlineKeyboardButton(
-                                text="📥 Download File",  # Teks yang muncul di tombol
-                                url=download_link         # Link tujuan saat tombol diklik
-                            )
-                        ]
-                    ]
-                )
+                f"✅ **File sukses terunggah!**\n\n"
+                f"🔗 **Klik kanan dan copy link:**\n\n{download_link}\n\n"
+                f"__Tautan resmi penyimpanan berkas Prima Digital Print.__"
             )
-            # --- MODIFIKASI TOMBOL INLINE SELESAI ---
-            
         else:
             await message.reply_text(f"❌ Cloudflare menolak berkas (Status: {response.status_code})")
             
