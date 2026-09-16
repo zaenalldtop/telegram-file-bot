@@ -2,11 +2,12 @@ import os
 import requests
 from pyrogram import Client, filters
 
+# Konfigurasi API Telegram dan Token Bot Anda
 API_ID = int(os.environ.get("API_ID", "39206186").strip()) 
 API_HASH = os.environ.get("API_HASH", "f1f40463bd79b121b4bff7a76c47ac16").strip()
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8913324140:AAFt0rHCeNPScTHThGPPmIR4S2cdLiZfMw4").strip()
 
-# Alamat Worker Anda
+# Domain profesional Cloud Percetakan Anda
 CUSTOM_DOMAIN = "https://primadigitalprint.com"
 
 app = Client("file_to_link_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
@@ -15,20 +16,23 @@ app = Client("file_to_link_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT
 async def generate_link(client, message):
     msg = await message.reply_text("⏳ *Sedang memproses berkas untuk Cloud Percetakan...*")
     
+    # Mengunduh berkas sementara dari Telegram ke server Render
     local_path = await message.download()
     await msg.edit_text("⚡ *Sedang menyinkronkan ke Cloud Prima Digital Print...*")
     
+    # Mengambil nama asli file (misal: Stempel Partai.rar)
     file_name = os.path.basename(local_path)
     
     try:
-        # Mengirim file langsung ke Cloudflare Workers Anda tanpa perantara web lain
+        # Mengirim berkas langsung ke Cloudflare Workers Anda tanpa pihak ketiga
         with open(local_path, "rb") as file_data:
             response = requests.put(
-                f"{CUSTOM_DOMAIN}/{file_name}",
+                f"https://primadigitalprint.com/{file_name}",
                 data=file_data,
                 headers={"Content-Type": "application/octet-stream"}
             )
         
+        # Jika Cloudflare Workers sukses menerima dan menyimpan berkas
         if response.status_code == 200:
             download_link = f"{CUSTOM_DOMAIN}/{file_name}"
             await msg.edit_text(
@@ -43,6 +47,7 @@ async def generate_link(client, message):
         await msg.edit_text(f"❌ Terjadi galat jaringan: {str(e)}")
     
     finally:
+        # Menghapus berkas sampah di server Render agar penyimpanan tidak penuh
         if os.path.exists(local_path):
             os.remove(local_path)
 
