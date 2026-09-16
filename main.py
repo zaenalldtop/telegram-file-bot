@@ -9,7 +9,7 @@ API_HASH = os.environ.get("API_HASH", "f1f40463bd79b121b4bff7a76c47ac16").strip(
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8913324140:AAFt0rHCeNPScTHThGPPmIR4S2cdLiZfMw4").strip()
 
 # ⚠️ TEMPELKAN URL .WORKERS.DEV ANDA DI SINI (Ganti teks di bawah ini dengan hasil salinan dari Cloudflare)
-CLOUDFLARE_WORKER_URL = "https://noisy-rice-9974.zaenalldtop95.workers.dev/" 
+CLOUDFLARE_WORKER_URL = "https://cloud.primadigitalprint.com/" 
 
 class HealthCheckHandler(BaseHTTPRequestHandler):
     def do_GET(self):
