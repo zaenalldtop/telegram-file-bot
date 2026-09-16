@@ -9,10 +9,10 @@ from urllib.parse import quote
 # ==========================================
 # KONFIGURASI KREDENSIAL (AMAN)
 # ==========================================
-# Mengambil data langsung dari Environment Variables di Render
-API_ID = int(os.environ.get("39206186").strip()) 
-API_HASH = os.environ.get("f1f40463bd79b121b4bff7a76c47ac16").strip()
-BOT_TOKEN = os.environ.get("8913324140:AAFt0rHCeNPScTHThGPPmIR4S2cdLiZfMw4").strip()
+# Mengambil variabel dari Render, jika kosong akan menggunakan nilai cadangan di bawah ini
+API_ID = int(os.environ.get("API_ID", "39206186").strip()) 
+API_HASH = os.environ.get("API_HASH", "f1f40463bd79b121b4bff7a76c47ac16").strip()
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "8913324140:AAFt0rHCeNPScTHThGPPmIR4S2cdLiZfMw4").strip()
 
 CLOUDFLARE_WORKER_URL = "https://cloud.primadigitalprint.com" 
 
