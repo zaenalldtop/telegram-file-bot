@@ -42,13 +42,16 @@ async def generate_link(client, message):
         if response.status_code == 200:
             download_link = f"{base_url}/d/{file_name}".replace(" ", "%20")
             
-            # MEMBUAT TOMBOL SALIN TAUTAN (MENGGUNAKAN FITUR SHARE TELEGRAM)
-            # Ketika tombol ini diklik, Telegram akan otomatis memicu sistem salin/bagikan link secara instan
+            # Perbaikan format URL share Telegram yang valid
+            from urllib.parse import quote
+            share_url = f"https://t.me{quote(download_link)}"
+            
             tombol_salin = InlineKeyboardMarkup([
                 [
-                    InlineKeyboardButton("🔗 Salin Tautan Berkas", url=f"https://t.me{download_link}")
+                    InlineKeyboardButton("🔗 Salin Tautan Berkas", url=share_url)
                 ]
             ])
+)
             
             await message.reply_text(
                 f"✅ FILE SUKSES TERUNGGAH!\n\n"
