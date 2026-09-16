@@ -1,2 +1,2 @@
-https://github.com
+pyrogram==2.0.106
 tgcrypto
