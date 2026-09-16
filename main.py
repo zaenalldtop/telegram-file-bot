@@ -45,7 +45,7 @@ async def generate_link(client, message):
             download_link = f"{base_url}/d/{file_name}".replace(" ", "%20")
             await message.reply_text(
                 f"✅ **File sukses terunggah!**\n\n"
-                f"🔗 **Klik kanan dan copy link:**\n\n{download_link}\n\n"
+                f"🔗 **Klik kanan dan copy link:**\n{download_link}\n\n"
                 f"__Tautan resmi penyimpanan berkas Prima Digital Print.__"
             )
         else:
