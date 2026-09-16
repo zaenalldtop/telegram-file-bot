@@ -5,7 +5,7 @@ API_ID = int(os.environ.get("API_ID", "39206186").strip())
 API_HASH = os.environ.get("API_HASH", "f1f40463bd79b121b4bff7a76c47ac16").strip()
 BOT_TOKEN = os.environ.get("BOT_TOKEN").strip()
 
-CUSTOM_DOMAIN = "https://primadigitalprint.com"
+CUSTOM_DOMAIN = "https://cloud.primadigitalprint.com"
 
 app = Client("file_to_link_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
