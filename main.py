@@ -1,6 +1,9 @@
 import os
 import requests
+import urllib3
 from pyrogram import Client, filters
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 API_ID = int(os.environ.get("API_ID", "39206186").strip()) 
 API_HASH = os.environ.get("API_HASH", "f1f40463bd79b121b4bff7a76c47ac16").strip()
@@ -17,25 +20,27 @@ async def generate_link(client, message):
     local_path = await message.download()
     await msg.edit_text("⚡ *Sedang mengunggah ke Cloud Prima Digital Print...*")
     
+    # Mengambil nama asli file agar dikenali dengan benar oleh server storage
+    file_name = os.path.basename(local_path)
+    
     try:
-        # Langkah 1: Meminta alamat server kosong yang tersedia dari GoFile API
-        server_response = requests.get("https://gofile.io")
-        server_data = server_response.json()
+        with open(local_path, "rb") as file_data:
+            # Memperbaiki format pengiriman file agar wajib menyertakan nama berkas
+            files_payload = {
+                "file": (file_name, file_data, "application/octet-stream")
+            }
+            
+            response = requests.post(
+                "https://pixeldrain.com",
+                files=files_payload,
+                verify=False
+            )
         
-        if server_data.get("status") == "ok":
-            best_server = server_data["data"]["servers"][0]["name"]
-            
-            # Langkah 2: Mengunggah berkas ke server terbaik GoFile
-            with open(local_path, "rb") as file_data:
-                upload_url = f"https://{best_server}.gofile.io/contents/uploadfile"
-                response = requests.post(upload_url, files={"file": file_data})
-            
+        # Mengecek apakah server merespons dengan JSON yang valid
+        if response.status_code in:
             res_data = response.json()
-            if response.status_code == 200 and res_data.get("status") == "ok":
-                # Mengambil ID berkas unik dari GoFile
-                file_id = res_data["data"]["fileId"]
-                
-                # Membungkus dengan domain kustom bisnis Anda
+            if res_data.get("success"):
+                file_id = res_data.get("id")
                 download_link = f"{CUSTOM_DOMAIN}/{file_id}"
                 
                 await msg.edit_text(
@@ -44,9 +49,9 @@ async def generate_link(client, message):
                     f"_Tautan resmi Cloud Percetakan Prima Digital Print._"
                 )
             else:
-                await msg.edit_text("❌ Server GoFile menolak berkas. Sila coba sekejap lagi.")
+                await msg.edit_text("❌ Server cloud menolak berkas karena masalah internal.")
         else:
-            await msg.edit_text("❌ Gagal mendapatkan jalur server penyimpanan.")
+            await msg.edit_text(f"❌ Server merespons dengan status error: {response.status_code}")
             
     except Exception as e:
         await msg.edit_text(f"❌ Terjadi galat jaringan: {str(e)}")
@@ -56,5 +61,5 @@ async def generate_link(client, message):
             os.remove(local_path)
 
 if __name__ == "__main__":
-    print("--- BOT CLOUD PERCETAKAN GOFILE AKTIF ---")
+    print("--- BOT CLOUD PERCETAKAN FINAL SUKSES BERJALAN ---")
     app.run()
