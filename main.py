@@ -1,6 +1,10 @@
 import os
 import requests
+import urllib3
 from pyrogram import Client, filters
+
+# Menonaktifkan peringatan tidak aman karena bypass SSL
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 API_ID = int(os.environ.get("API_ID", "39206186").strip()) 
 API_HASH = os.environ.get("API_HASH", "f1f40463bd79b121b4bff7a76c47ac16").strip()
@@ -18,18 +22,17 @@ async def generate_link(client, message):
     await msg.edit_text("⚡ *Sedang mengunggah ke Cloud Prima Digital Print...*")
     
     try:
-        # Mengunggah file ke API Pixeldrain yang sangat cepat dan mendukung semua format (.rar, .cdr)
         with open(local_path, "rb") as file_data:
+            # Menambahkan verify=False untuk melewati bentrokan protokol SSL Render
             response = requests.post(
                 "https://pixeldrain.com",
-                files={"file": file_data}
+                files={"file": file_data},
+                verify=False
             )
         
         res_data = response.json()
         if response.status_code == 201 and res_data.get("success"):
             file_id = res_data.get("id")
-            
-            # Membuat format link profesional menggunakan domain Anda
             download_link = f"{CUSTOM_DOMAIN}/{file_id}"
             
             await msg.edit_text(
@@ -44,10 +47,9 @@ async def generate_link(client, message):
         await msg.edit_text(f"❌ Terjadi galat sistem: {str(e)}")
     
     finally:
-        # Menghapus file sampah di server Render agar tidak penuh
         if os.path.exists(local_path):
             os.remove(local_path)
 
 if __name__ == "__main__":
-    print("--- BOT CLOUD PERCETAKAN FINAL AKTIF ---")
+    print("--- BOT CLOUD PERCETAKAN FINAL SUKSES BERJALAN ---")
     app.run()
