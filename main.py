@@ -20,12 +20,10 @@ async def generate_link(client, message):
     local_path = await message.download()
     await msg.edit_text("⚡ *Sedang mengunggah ke Cloud Prima Digital Print...*")
     
-    # Mengambil nama asli file agar dikenali dengan benar oleh server storage
     file_name = os.path.basename(local_path)
     
     try:
         with open(local_path, "rb") as file_data:
-            # Memperbaiki format pengiriman file agar wajib menyertakan nama berkas
             files_payload = {
                 "file": (file_name, file_data, "application/octet-stream")
             }
@@ -36,8 +34,8 @@ async def generate_link(client, message):
                 verify=False
             )
         
-        # Mengecek apakah server merespons dengan JSON yang valid
-        if response.status_code in:
+        # PERBAIKAN: Memeriksa status sukses pengiriman file (Status 201 Created)
+        if response.status_code == 201:
             res_data = response.json()
             if res_data.get("success"):
                 file_id = res_data.get("id")
