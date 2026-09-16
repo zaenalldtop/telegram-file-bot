@@ -3,13 +3,13 @@ import requests
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pyrogram import Client, filters
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 API_ID = int(os.environ.get("API_ID", "39206186").strip()) 
 API_HASH = os.environ.get("API_HASH", "f1f40463bd79b121b4bff7a76c47ac16").strip()
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8913324140:AAFt0rHCeNPScTHThGPPmIR4S2cdLiZfMw4").strip()
 
-# ⚠️ TEMPELKAN URL .WORKERS.DEV ANDA DI SINI (Ganti teks di bawah ini dengan hasil salinan dari Cloudflare)
-CLOUDFLARE_WORKER_URL = "https://cloud.primadigitalprint.com/" 
+CLOUDFLARE_WORKER_URL = "https://primadigitalprint.com" 
 
 class HealthCheckHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -30,11 +30,9 @@ async def generate_link(client, message):
     local_path = await message.download()
     file_name = os.path.basename(local_path)
     
-    # Membersihkan URL dari tanda garis miring di ujung jika ada
     base_url = CLOUDFLARE_WORKER_URL.rstrip('/')
     
     try:
-        # Mengirim berkas langsung ke server internal Cloudflare Workers Anda
         with open(local_path, "rb") as file_data:
             response = requests.post(
                 f"{base_url}/d/{file_name}",
@@ -42,11 +40,24 @@ async def generate_link(client, message):
             )
         
         if response.status_code == 200:
+            # Otomatis mengubah spasi menjadi %20 agar link internet utuh tidak terputus
             download_link = f"{base_url}/d/{file_name}".replace(" ", "%20")
+            
+            # MEMBUAT TOMBOL INTERAKTIF DI BAWAH PESAN
+            # Catatan: Telegram secara otomatis menyediakan fitur "Copy Link" bawaan 
+            # jika tombol URL di bawah ini ditekan lama oleh pengguna HP.
+            tombol_proses = InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("📥 Unduh Berkas", url=download_link)
+                ]
+            ])
+            
             await message.reply_text(
-                f"✅ **File Sukses Terunggah!**\n\n"
-                f"🔗 **Link Download:**\n\n{download_link}\n\n"
-                f"__Tautan resmi Penyimpanan Berkas Prima Digital Print.__"
+                f"✅ **FILE SUKSES TERUNGGAH!**\n\n"
+                f"📁 **Nama Berkas:** `{file_name}`\n\n"
+                f"_Tautan resmi Penyimpanan Berkas Prima Digital Print._\n"
+                f"_Klik atau tahan tombol di bawah untuk mengunduh/menyalin link._",
+                reply_markup=tombol_proses
             )
         else:
             await message.reply_text(f"❌ Cloudflare menolak berkas (Status: {response.status_code})")
