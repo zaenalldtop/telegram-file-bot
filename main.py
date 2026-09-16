@@ -44,9 +44,9 @@ async def generate_link(client, message):
         if response.status_code == 200:
             download_link = f"{base_url}/d/{file_name}".replace(" ", "%20")
             await message.reply_text(
-                f"✅ *File Sukses Terunggah!*\n\n"
-                f"🔗 *Tautan Unduh Publik:*\n{download_link}\n\n"
-                f"_Tautan resmi Penyimpanan Berkas Prima Digital Print._"
+                f"✅ **File Sukses Terunggah!**\n\n"
+                f"🔗 **Link Download:**\n\n{download_link}\n\n"
+                f"__Tautan resmi Penyimpanan Berkas Prima Digital Print.__"
             )
         else:
             await message.reply_text(f"❌ Cloudflare menolak berkas (Status: {response.status_code})")
