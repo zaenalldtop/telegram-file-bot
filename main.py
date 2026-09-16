@@ -3,22 +3,14 @@ import requests
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from urllib.parse import quote
 
-# ==========================================
-# KONFIGURASI KREDENSIAL (AMAN)
-# ==========================================
-# Mengambil variabel dari Render, jika kosong akan menggunakan nilai cadangan di bawah ini
 API_ID = int(os.environ.get("API_ID", "39206186").strip()) 
 API_HASH = os.environ.get("API_HASH", "f1f40463bd79b121b4bff7a76c47ac16").strip()
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8913324140:AAFt0rHCeNPScTHThGPPmIR4S2cdLiZfMw4").strip()
 
-CLOUDFLARE_WORKER_URL = "https://cloud.primadigitalprint.com" 
+# ⚠️ TEMPELKAN URL .WORKERS.DEV ANDA DI SINI (Ganti teks di bawah ini dengan hasil salinan dari Cloudflare)
+CLOUDFLARE_WORKER_URL = "https://cloud.primadigitalprint.com/" 
 
-# ==========================================
-# SERVER HEALTH CHECK (UNTUK RENDER Web Service)
-# ==========================================
 class HealthCheckHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -31,21 +23,18 @@ def run_health_server():
     server = HTTPServer(("0.0.0.0", port), HealthCheckHandler)
     server.serve_forever()
 
-# INISIALISASI BOT TELEGRAM
 app = Client("file_to_link_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-# ==========================================
-# LOGIKA PENGOLAHAN PESAN & UNGGAH BERKAS
-# ==========================================
 @app.on_message(filters.document | filters.video | filters.audio | filters.photo)
 async def generate_link(client, message):
     local_path = await message.download()
     file_name = os.path.basename(local_path)
     
+    # Membersihkan URL dari tanda garis miring di ujung jika ada
     base_url = CLOUDFLARE_WORKER_URL.rstrip('/')
     
     try:
-        # Unggah berkas ke Cloudflare Worker
+        # Mengirim berkas langsung ke server internal Cloudflare Workers Anda
         with open(local_path, "rb") as file_data:
             response = requests.post(
                 f"{base_url}/d/{file_name}",
@@ -53,25 +42,11 @@ async def generate_link(client, message):
             )
         
         if response.status_code == 200:
-            # Mengonversi spasi atau karakter khusus pada nama file agar aman di URL
             download_link = f"{base_url}/d/{file_name}".replace(" ", "%20")
-            
-            # MEMBUAT TAUTAN SHARE TELEGRAM YANG VALID
-            # Format ini akan memicu pop-up bawaan Telegram untuk menyalin atau membagikan link secara instan
-            share_url = f"https://t.me{quote(download_link)}"
-            
-            tombol_salin = InlineKeyboardMarkup([
-                [
-                    InlineKeyboardButton("🔗 Salin Tautan Berkas", url=share_url)
-                ]
-            ])
-            
-            # Mengirim pesan sukses dengan f-string yang sudah diperbaiki strukturnya
             await message.reply_text(
-                f"✅ FILE SUKSES TERUNGGAH!\n\n"
-                f"📁 Nama Berkas: `{file_name}`\n\n"
-                f"__Tautan resmi Penyimpanan Berkas Prima Digital Print.__",
-                reply_markup=tombol_salin
+                f"✅ **File Sukses Terunggah!**\n\n"
+                f"🔗 **Link Download:**\n\n{download_link}\n\n"
+                f"__Tautan resmi Penyimpanan Berkas Prima Digital Print.__"
             )
         else:
             await message.reply_text(f"❌ Cloudflare menolak berkas (Status: {response.status_code})")
@@ -80,15 +55,10 @@ async def generate_link(client, message):
         await message.reply_text(f"❌ Terjadi galat jaringan: {str(e)}")
     
     finally:
-        # Memastikan file lokal di server Render langsung dihapus untuk menghemat ruang penyimpanan
         if os.path.exists(local_path):
             os.remove(local_path)
 
-# ==========================================
-# MENJALANKAN APLIKASI
-# ==========================================
 if __name__ == "__main__":
-    # Jalankan server HTTP di background agar Render tidak menganggap deployment timeout/failed
     threading.Thread(target=run_health_server, daemon=True).start()
-    print("--- BOT CLOUD TOMBOL SALIN AKTIF ---")
+    print("--- BOT JALUR DIREK WORKERS AKTIF ---")
     app.run()
